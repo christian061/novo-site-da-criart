@@ -94,19 +94,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Enhanced particle system (disabled on mobile)
+// Enhanced particle system (optimized for mobile)
 function createParticleSystem() {
-    // Skip particle creation on mobile devices
-    if (isMobile) {
-        console.log('Partículas desabilitadas no mobile para melhor performance');
-        return;
-    }
-    
     const particleContainer = document.querySelector('.particle-container');
     if (!particleContainer) return;
     
-    // Create fewer particles on desktop
-    for (let i = 0; i < 50; i++) { // Reduced from 100 to 50
+    // Create different amounts based on device
+    const particleCount = isMobile ? 20 : 50; // Mobile gets fewer particles
+    console.log(`Criando ${particleCount} partículas para ${isMobile ? 'mobile' : 'desktop'}`);
+    
+    // Create optimized particles
+    for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
         particle.className = 'floating-particle';
         particle.style.cssText = `
@@ -639,7 +637,7 @@ if (!isMobile) {
     console.log('Rastro do mouse desabilitado no mobile para melhor performance');
 }
 
-// Add simple trail animation
+// Add simple trail animation and light cinematic flash
 const simpleTrailStyle = document.createElement('style');
 simpleTrailStyle.textContent = `
     @keyframes simpleTrailFade {
@@ -651,6 +649,11 @@ simpleTrailStyle.textContent = `
             opacity: 0;
             transform: scale(0.3);
         }
+    }
+    
+    @keyframes lightCinematicFlash {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 0.1; }
     }
 `;
 document.head.appendChild(simpleTrailStyle);
@@ -748,21 +751,34 @@ function changeScene(newSceneIndex) {
     const currentSceneEl = document.querySelector(`[data-scene="${currentScene}"].cinematic-scene`);
     const newSceneEl = document.querySelector(`[data-scene="${newSceneIndex}"].cinematic-scene`);
     
-    // Simplified scene transition for mobile
+    // Optimized scene transition for mobile - keep smooth but faster
     if (isMobile) {
-        // Instant transition on mobile for better performance
+        // Faster but smooth transition on mobile
         if (currentSceneEl) {
+            currentSceneEl.classList.add('transitioning-out');
             currentSceneEl.classList.remove('active');
-            currentSceneEl.style.opacity = '0';
         }
         
-        if (newSceneEl) {
-            newSceneEl.classList.add('active');
-            newSceneEl.style.opacity = '1';
-        }
+        setTimeout(() => {
+            if (newSceneEl) {
+                newSceneEl.classList.add('transitioning-in', 'active');
+                newSceneEl.classList.remove('transitioning-out');
+            }
+            
+            setTimeout(() => {
+                if (currentSceneEl) {
+                    currentSceneEl.classList.remove('transitioning-out');
+                }
+                if (newSceneEl) {
+                    newSceneEl.classList.remove('transitioning-in');
+                }
+                
+                currentScene = newSceneIndex;
+                sceneTransitioning = false;
+                
+            }, 400); // Faster transition for mobile
+        }, 100);
         
-        currentScene = newSceneIndex;
-        sceneTransitioning = false;
         resetAutoSceneTransition();
         return;
     }
@@ -938,10 +954,9 @@ function toggleMobileMenu() {
         const span = mobileToggle.querySelector('span');
         if (mobileMenu.classList.contains('active')) {
             span.innerHTML = '✕';
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
+            // Don't prevent body scrolling - allow natural scroll behavior
         } else {
             span.innerHTML = '☰';
-            document.body.style.overflow = '';
         }
     }
 }
@@ -953,7 +968,7 @@ function closeMobileMenu() {
     if (mobileMenu && mobileToggle) {
         mobileMenu.classList.remove('active');
         mobileToggle.querySelector('span').innerHTML = '☰';
-        document.body.style.overflow = '';
+        // Don't modify body overflow - allow natural scrolling
     }
 }
 
@@ -980,10 +995,11 @@ function initTouchSceneNavigation() {
         function handleSwipe() {
             const deltaX = touchEndX - touchStartX;
             const deltaY = touchEndY - touchStartY;
-            const minSwipeDistance = 50;
+            const minSwipeDistance = 80; // Increased threshold to avoid conflicts with scrolling
             
-            // Only handle horizontal swipes
-            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+            // Only handle horizontal swipes that are clearly horizontal
+            if (Math.abs(deltaX) > Math.abs(deltaY) * 2 && Math.abs(deltaX) > minSwipeDistance) {
+                // Only if it's clearly a horizontal gesture and not vertical scroll
                 if (!sceneTransitioning) {
                     if (deltaX > 0) {
                         // Swipe right - previous scene
@@ -1000,16 +1016,24 @@ function initTouchSceneNavigation() {
     }
 }
 
-// Aggressive mobile performance optimizations
+// Smart mobile performance optimizations - keep effects but optimize them
 function optimizeForMobile() {
     if (isMobile) {
-        console.log('Aplicando otimizações agressivas para mobile...');
+        console.log('Aplicando otimizações inteligentes para mobile...');
         
-        // Remove ALL particle elements for performance
+        // Reduce particle count but keep some for visual appeal
         const particleElements = document.querySelectorAll('.floating-particle');
-        particleElements.forEach(particle => particle.remove());
+        particleElements.forEach((particle, index) => {
+            if (index > 15) { // Keep only 15 particles instead of removing all
+                particle.remove();
+            } else {
+                // Slow down remaining particles
+                particle.style.animationDuration = '20s';
+                particle.style.opacity = '0.4';
+            }
+        });
         
-        // Disable ALL complex animations and effects
+        // Optimize complex animations instead of disabling
         const complexElements = document.querySelectorAll(`
             .holographic-interfaces, .lens-flares, .light-streaks, .portal-transitions,
             .ai-data-flows, .floating-elements, .hologram-layer, .energy-flows,
@@ -1022,27 +1046,44 @@ function optimizeForMobile() {
             .holographic-figure, .portal-burst, .energy-particles
         `);
         complexElements.forEach(element => {
-            element.style.display = 'none';
-            element.style.animation = 'none';
+            // Optimize instead of hiding
+            element.style.animationDuration = '8s';
+            element.style.opacity = '0.4';
+            element.style.transform = 'scale(0.8)';
         });
         
-        // Simplify scene backgrounds
+        // Keep scene backgrounds but simplify them slightly
         const sceneBackgrounds = document.querySelectorAll('.scene-background');
         sceneBackgrounds.forEach(bg => {
-            bg.style.background = 'linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 50, 100, 0.2) 50%, rgba(0, 0, 0, 0.9) 100%)';
+            bg.style.filter = 'brightness(0.8)';
         });
         
-        // Disable parallax effects on mobile
-        window.removeEventListener('mousemove', updateParallaxLayers);
+        // Reduce parallax intensity instead of disabling
+        const originalParallax = window.updateParallaxLayers;
+        if (originalParallax) {
+            window.updateParallaxLayers = function() {
+                // Reduced parallax effect for mobile
+                const activeScene = document.querySelector('.hero-scene.active');
+                if (!activeScene) return;
+                
+                const parallaxLayers = activeScene.querySelectorAll('.parallax-layer');
+                parallaxLayers.forEach(layer => {
+                    const speed = parseFloat(layer.dataset.speed) || 0.5;
+                    const moveX = mouseX * speed * 5; // Reduced from 20 to 5
+                    const moveY = mouseY * speed * 5;
+                    
+                    layer.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                });
+            };
+        }
         
-        // Simplify scene transitions
+        // Smooth scene transitions but faster
         const scenes = document.querySelectorAll('.cinematic-scene');
         scenes.forEach(scene => {
-            scene.style.transition = 'opacity 0.3s ease';
-            scene.style.transform = 'none';
+            scene.style.transition = 'opacity 0.5s ease';
         });
         
-        // Increase auto scene transition time significantly
+        // Moderate auto scene transition time
         if (autoSceneTimer) {
             clearInterval(autoSceneTimer);
             autoSceneTimer = setInterval(() => {
@@ -1050,17 +1091,49 @@ function optimizeForMobile() {
                     const nextScene = (currentScene + 1) % totalScenes;
                     changeScene(nextScene);
                 }
-            }, 15000); // 15 seconds for better performance
+            }, 12000); // 12 seconds - balanced performance
         }
         
-        // Disable cinematic effects
-        clearInterval(cinematicEffectsInterval);
+        // Reduce cinematic effects frequency instead of disabling
+        if (window.cinematicEffectsInterval) {
+            clearInterval(window.cinematicEffectsInterval);
+            window.cinematicEffectsInterval = setInterval(() => {
+                if (!isMobile) return;
+                // Lighter cinematic transition for mobile
+                createLightCinematicTransition();
+            }, 15000); // Less frequent
+        }
         
-        // Reduce DOM manipulation
-        document.removeEventListener('mousemove', createCinematicTransition);
-        
-        console.log('Otimizações móveis aplicadas com sucesso!');
+        console.log('Otimizações móveis inteligentes aplicadas!');
     }
+}
+
+// Lighter version of cinematic transition for mobile
+function createLightCinematicTransition() {
+    const transition = document.createElement('div');
+    transition.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at center, 
+            transparent 0%, 
+            rgba(0, 255, 255, 0.05) 50%, 
+            transparent 100%
+        );
+        z-index: 25;
+        pointer-events: none;
+        animation: lightCinematicFlash 1s ease-in-out;
+    `;
+    
+    document.body.appendChild(transition);
+    
+    setTimeout(() => {
+        if (transition && transition.parentNode) {
+            transition.remove();
+        }
+    }, 1000);
 }
 
 // Viewport height fix for mobile browsers
@@ -1166,18 +1239,5 @@ window.addEventListener('orientationchange', function() {
     }, 100);
 });
 
-// Prevent overscroll on mobile
-document.addEventListener('touchmove', function(e) {
-    if (e.target.closest('.mobile-menu')) {
-        return; // Allow scrolling in mobile menu
-    }
-    
-    const target = e.target;
-    const scrollable = target.closest('.scrollable') || 
-                      target.closest('textarea') || 
-                      target.closest('[data-scrollable]');
-    
-    if (!scrollable) {
-        e.preventDefault();
-    }
-}, { passive: false });
+// Allow normal scrolling on mobile - no interference
+// Removed touchmove prevention to allow natural scrolling

@@ -22,6 +22,7 @@ body {
     color: #ffffff;
     overflow-x: hidden;
     scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
 }
 
 .container {
@@ -3545,16 +3546,16 @@ body {
     left: -100%;
     width: 100%;
     height: calc(var(--vh, 1vh) * 100 - 70px);
-    background: rgba(10, 10, 10, 0.98);
-    backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     gap: 2rem;
     transition: left 0.3s ease;
     z-index: 999;
     border-left: 2px solid rgba(0, 212, 255, 0.3);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 .mobile-menu.active {
@@ -3632,6 +3633,15 @@ body {
 }
 
 @media (max-width: 768px) {
+    /* Ensure scrolling works on mobile */
+    html, body {
+        overflow-x: hidden;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        touch-action: pan-y; /* Allow vertical scrolling */
+    }
+    
     /* Navigation Mobile */
     .nav-menu {
         display: none;
@@ -3645,6 +3655,8 @@ body {
     .hero {
         min-height: 100vh;
         padding: 0;
+        touch-action: pan-y; /* Allow vertical scrolling in hero section */
+        overflow: visible;
     }
     
     .hero-title {
@@ -3800,77 +3812,130 @@ body {
         opacity: 0.5;
     }
     
-    /* Aggressive performance optimizations for mobile */
-    .holographic-interfaces,
-    .lens-flares,
-    .light-streaks,
-    .portal-transitions,
-    .ai-data-flows,
-    .floating-elements,
-    .hologram-layer,
-    .energy-flows,
-    .neural-network,
-    .data-nodes,
-    .ai-connections,
-    .quantum-field,
-    .dimensional-rifts,
-    .interface-panels,
-    .star-field,
-    .space-station,
-    .orbital-rings {
-        display: none !important;
-    }
+    /* Mobile-optimized effects - lighter versions */
     
-    /* Simplify remaining animations */
+    /* Simplify but keep particle effects */
     .particle-field {
-        opacity: 0.1 !important;
-        animation: none !important;
-        background: radial-gradient(2px 2px at 50% 50%, var(--electric-blue), transparent);
-        background-size: 100px 100px;
+        opacity: 0.4 !important;
+        animation-duration: 15s !important;
+        background: 
+            radial-gradient(1px 1px at 25% 25%, var(--electric-blue), transparent),
+            radial-gradient(1px 1px at 75% 75%, var(--neon-cyan), transparent);
+        background-size: 80px 80px;
     }
     
     .grid-overlay {
-        opacity: 0.1 !important;
-        animation: none !important;
+        opacity: 0.2 !important;
+        animation-duration: 8s !important;
+        background-size: 40px 40px;
     }
     
     .energy-waves {
-        display: none !important;
+        opacity: 0.3 !important;
+        animation-duration: 10s !important;
     }
     
-    /* Disable complex scene backgrounds */
-    .energy-portal,
-    .cyberpunk-city,
-    .quantum-space,
-    .transformation-space,
-    .brand-reveal-space {
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 50, 100, 0.2) 50%, rgba(0, 0, 0, 0.9) 100%) !important;
+    /* Optimize complex elements instead of hiding */
+    .holographic-interfaces,
+    .lens-flares,
+    .light-streaks {
+        opacity: 0.3 !important;
+        animation-duration: 6s !important;
     }
     
-    /* Simplify all keyframe animations */
-    * {
-        animation-duration: 2s !important;
-        animation-iteration-count: 1 !important;
+    .portal-transitions,
+    .ai-data-flows {
+        opacity: 0.4 !important;
+        animation-duration: 8s !important;
     }
     
+    .floating-elements,
+    .hologram-layer {
+        opacity: 0.2 !important;
+        animation-duration: 12s !important;
+    }
+    
+    /* Simplify scene elements but keep them visible */
     .portal-ring,
-    .portal-core,
+    .portal-core {
+        opacity: 0.6 !important;
+        animation-duration: 4s !important;
+        transform: scale(0.8) !important;
+    }
+    
     .energy-flows,
-    .particle-swirl,
+    .particle-swirl {
+        opacity: 0.4 !important;
+        animation-duration: 6s !important;
+    }
+    
     .city-skyline,
-    .holographic-buildings,
+    .holographic-buildings {
+        opacity: 0.5 !important;
+        animation-duration: 10s !important;
+    }
+    
     .flying-drones,
-    .neon-lights,
+    .neon-lights {
+        opacity: 0.3 !important;
+        animation-duration: 8s !important;
+    }
+    
     .geometric-shapes,
-    .morphing-particles,
+    .morphing-particles {
+        opacity: 0.4 !important;
+        animation-duration: 6s !important;
+        transform: scale(0.7) !important;
+    }
+    
     .human-silhouette,
     .fragmentation-effect,
-    .hologram-reconstruction,
-    .glitch-overlay,
+    .hologram-reconstruction {
+        opacity: 0.5 !important;
+        animation-duration: 5s !important;
+    }
+    
+    .glitch-overlay {
+        opacity: 0.2 !important;
+        animation-duration: 3s !important;
+    }
+    
     .holographic-figure,
     .portal-burst,
     .energy-particles {
-        display: none !important;
+        opacity: 0.6 !important;
+        animation-duration: 4s !important;
+    }
+    
+    /* Optimize complex backgrounds */
+    .neural-network,
+    .data-nodes,
+    .ai-connections {
+        opacity: 0.3 !important;
+        animation-duration: 8s !important;
+    }
+    
+    .quantum-field,
+    .dimensional-rifts {
+        opacity: 0.4 !important;
+        animation-duration: 10s !important;
+    }
+    
+    .interface-panels {
+        opacity: 0.3 !important;
+        animation-duration: 6s !important;
+    }
+    
+    .star-field {
+        opacity: 0.6 !important;
+        animation-duration: 15s !important;
+        background-size: 150px 150px !important;
+    }
+    
+    .space-station,
+    .orbital-rings {
+        opacity: 0.4 !important;
+        animation-duration: 12s !important;
     }
 }
 
@@ -3918,11 +3983,12 @@ body {
         padding: 0.8rem;
     }
     
-    /* Further reduce effects for very small screens */
+    /* Further optimize effects for very small screens */
     .particle-field,
     .grid-overlay,
     .energy-waves {
-        display: none !important;
+        opacity: 0.2 !important;
+        animation-duration: 20s !important;
     }
     
     .scene-indicators {
@@ -3935,22 +4001,35 @@ body {
         height: 8px;
     }
     
-    /* Disable all transforms and complex animations */
-    * {
-        transform: none !important;
-        animation: none !important;
-        transition: opacity 0.3s ease !important;
-        backdrop-filter: none !important;
-        filter: none !important;
+    /* Optimize animations for very small screens */
+    .holographic-interfaces,
+    .lens-flares,
+    .light-streaks,
+    .portal-transitions,
+    .ai-data-flows {
+        opacity: 0.2 !important;
+        animation-duration: 10s !important;
     }
     
-    /* Keep only essential animations */
+    .floating-elements,
+    .hologram-layer,
+    .neural-network,
+    .data-nodes,
+    .ai-connections,
+    .quantum-field,
+    .dimensional-rifts,
+    .interface-panels {
+        opacity: 0.15 !important;
+        animation-duration: 15s !important;
+    }
+    
+    /* Keep essential animations smooth */
     .mobile-menu {
         transition: left 0.3s ease !important;
     }
     
     .cinematic-scene {
-        transition: opacity 0.3s ease !important;
+        transition: opacity 0.4s ease !important;
     }
     
     .cta-button,
