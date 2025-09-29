@@ -3,8 +3,15 @@ let currentScene = 0;
 let totalScenes = 5; // Número total de cenas
 let sceneTransitioning = false;
 
+// Mobile detection and optimization
+const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
 // Smooth scrolling for navigation links
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize mobile menu
+    initMobileMenu();
+    
     // Smooth scrolling for navigation
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
@@ -18,6 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     behavior: 'smooth',
                     block: 'start'
                 });
+                
+                // Close mobile menu if open
+                closeMobileMenu();
             }
         });
     });
@@ -297,12 +307,12 @@ function setupHeroButton() {
     document.head.appendChild(style);
 }
 
-// Enhanced Mouse trail effect
+// Enhanced Mouse trail effect (desktop only)
 let mouseTrailActive = true;
 let trailParticles = [];
 
 document.addEventListener('mousemove', function(e) {
-    if (window.innerWidth > 768 && mouseTrailActive) { // Only on desktop
+    if (!isMobile && mouseTrailActive) { // Only on desktop
         createMouseTrail(e.clientX, e.clientY);
         createGlowTrail(e.clientX, e.clientY);
     }
@@ -846,3 +856,235 @@ sceneTransitionStyle.textContent = `
     }
 `;
 document.head.appendChild(sceneTransitionStyle);
+
+// ===== MOBILE SPECIFIC FUNCTIONS =====
+
+// Mobile Menu Functions
+function initMobileMenu() {
+    const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    
+    if (mobileToggle && mobileMenu) {
+        mobileToggle.addEventListener('click', function() {
+            toggleMobileMenu();
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!mobileMenu.contains(e.target) && !mobileToggle.contains(e.target)) {
+                closeMobileMenu();
+            }
+        });
+        
+        // Close menu on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeMobileMenu();
+            }
+        });
+    }
+}
+
+function toggleMobileMenu() {
+    const mobileMenu = document.querySelector('.mobile-menu');
+    const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    
+    if (mobileMenu && mobileToggle) {
+        mobileMenu.classList.toggle('active');
+        
+        // Update toggle button
+        const span = mobileToggle.querySelector('span');
+        if (mobileMenu.classList.contains('active')) {
+            span.innerHTML = '✕';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        } else {
+            span.innerHTML = '☰';
+            document.body.style.overflow = '';
+        }
+    }
+}
+
+function closeMobileMenu() {
+    const mobileMenu = document.querySelector('.mobile-menu');
+    const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    
+    if (mobileMenu && mobileToggle) {
+        mobileMenu.classList.remove('active');
+        mobileToggle.querySelector('span').innerHTML = '☰';
+        document.body.style.overflow = '';
+    }
+}
+
+// Touch-friendly scene navigation
+function initTouchSceneNavigation() {
+    if (isTouch) {
+        const heroSection = document.querySelector('.hero');
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        
+        heroSection.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        });
+        
+        heroSection.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const minSwipeDistance = 50;
+            
+            // Only handle horizontal swipes
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+                if (!sceneTransitioning) {
+                    if (deltaX > 0) {
+                        // Swipe right - previous scene
+                        const prevScene = currentScene === 0 ? totalScenes - 1 : currentScene - 1;
+                        changeScene(prevScene);
+                    } else {
+                        // Swipe left - next scene
+                        const nextScene = (currentScene + 1) % totalScenes;
+                        changeScene(nextScene);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Mobile performance optimizations
+function optimizeForMobile() {
+    if (isMobile) {
+        // Reduce particle count for better performance
+        const particleElements = document.querySelectorAll('.floating-particle');
+        particleElements.forEach((particle, index) => {
+            if (index > 30) { // Keep only first 30 particles
+                particle.remove();
+            }
+        });
+        
+        // Disable complex animations on very small screens
+        if (window.innerWidth < 480) {
+            const complexAnimations = document.querySelectorAll(
+                '.holographic-interfaces, .lens-flares, .light-streaks, .portal-transitions'
+            );
+            complexAnimations.forEach(element => {
+                element.style.display = 'none';
+            });
+        }
+        
+        // Optimize scene transitions for mobile
+        const scenes = document.querySelectorAll('.cinematic-scene');
+        scenes.forEach(scene => {
+            scene.style.transition = 'opacity 0.5s ease-in-out';
+        });
+        
+        // Reduce auto scene transition time on mobile
+        if (autoSceneTimer) {
+            clearInterval(autoSceneTimer);
+            autoSceneTimer = setInterval(() => {
+                if (!sceneTransitioning) {
+                    const nextScene = (currentScene + 1) % totalScenes;
+                    changeScene(nextScene);
+                }
+            }, 10000); // 10 seconds instead of 8
+        }
+    }
+}
+
+// Viewport height fix for mobile browsers
+function fixMobileViewport() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+    
+    // Update on resize/orientation change
+    window.addEventListener('resize', () => {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    });
+}
+
+// Touch feedback for interactive elements
+function addTouchFeedback() {
+    if (isTouch) {
+        const interactiveElements = document.querySelectorAll(
+            '.cta-button, .service-card, .portfolio-item, .indicator, .submit-button'
+        );
+        
+        interactiveElements.forEach(element => {
+            element.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.95)';
+                this.style.transition = 'transform 0.1s ease';
+            });
+            
+            element.addEventListener('touchend', function() {
+                setTimeout(() => {
+                    this.style.transform = '';
+                    this.style.transition = '';
+                }, 100);
+            });
+        });
+    }
+}
+
+// Optimize form inputs for mobile
+function optimizeMobileForm() {
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        // Prevent zoom on focus for iOS
+        input.style.fontSize = '16px';
+        
+        // Add mobile-specific attributes
+        if (input.type === 'email') {
+            input.setAttribute('inputmode', 'email');
+        }
+        if (input.type === 'tel') {
+            input.setAttribute('inputmode', 'tel');
+        }
+    });
+}
+
+// Initialize mobile optimizations
+if (isMobile || isTouch) {
+    document.addEventListener('DOMContentLoaded', function() {
+        initTouchSceneNavigation();
+        optimizeForMobile();
+        fixMobileViewport();
+        addTouchFeedback();
+        optimizeMobileForm();
+    });
+}
+
+// Handle orientation change
+window.addEventListener('orientationchange', function() {
+    setTimeout(() => {
+        fixMobileViewport();
+        // Refresh scene layout
+        const activeScene = document.querySelector('.cinematic-scene.active');
+        if (activeScene) {
+            activeScene.style.transform = 'scale(1)';
+        }
+    }, 100);
+});
+
+// Prevent overscroll on mobile
+document.addEventListener('touchmove', function(e) {
+    if (e.target.closest('.mobile-menu')) {
+        return; // Allow scrolling in mobile menu
+    }
+    
+    const target = e.target;
+    const scrollable = target.closest('.scrollable') || 
+                      target.closest('textarea') || 
+                      target.closest('[data-scrollable]');
+    
+    if (!scrollable) {
+        e.preventDefault();
+    }
+}, { passive: false });
