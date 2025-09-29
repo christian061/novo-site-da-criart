@@ -94,12 +94,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Enhanced particle system
+// Enhanced particle system (disabled on mobile)
 function createParticleSystem() {
-    const particleContainer = document.querySelector('.particle-container');
+    // Skip particle creation on mobile devices
+    if (isMobile) {
+        console.log('Partículas desabilitadas no mobile para melhor performance');
+        return;
+    }
     
-    // Create floating particles
-    for (let i = 0; i < 100; i++) {
+    const particleContainer = document.querySelector('.particle-container');
+    if (!particleContainer) return;
+    
+    // Create fewer particles on desktop
+    for (let i = 0; i < 50; i++) { // Reduced from 100 to 50
         const particle = document.createElement('div');
         particle.className = 'floating-particle';
         particle.style.cssText = `
@@ -502,12 +509,18 @@ glitchStyle.textContent = `
 `;
 document.head.appendChild(glitchStyle);
 
-// Cinematic video effects
+// Cinematic video effects (disabled on mobile)
 function initCinematicEffects() {
-    // Create dynamic camera movements
+    // Skip cinematic effects on mobile for better performance
+    if (isMobile) {
+        console.log('Efeitos cinematográficos desabilitados no mobile');
+        return;
+    }
+    
+    // Create dynamic camera movements (desktop only)
     const videoBackground = document.querySelector('.video-background');
     
-    // Parallax depth effect
+    // Parallax depth effect (desktop only)
     window.addEventListener('mousemove', function(e) {
         if (window.innerWidth > 768) {
             const x = (e.clientX / window.innerWidth) * 100;
@@ -530,8 +543,10 @@ function initCinematicEffects() {
         }
     });
     
-    // Dynamic zoom effect on scroll
+    // Dynamic zoom effect on scroll (desktop only)
     window.addEventListener('scroll', function() {
+        if (isMobile) return; // Skip on mobile
+        
         const scrolled = window.pageYOffset;
         const rate = scrolled * -0.0005;
         
@@ -540,10 +555,15 @@ function initCinematicEffects() {
         }
     });
     
-    // Cinematic transitions between scenes
-    setInterval(() => {
-        createCinematicTransition();
+    // Cinematic transitions between scenes (desktop only)
+    const cinematicInterval = setInterval(() => {
+        if (!isMobile) {
+            createCinematicTransition();
+        }
     }, 8000);
+    
+    // Store interval for cleanup
+    window.cinematicEffectsInterval = cinematicInterval;
 }
 
 // Create cinematic scene transitions
@@ -582,41 +602,42 @@ cinematicStyle.textContent = `
 `;
 document.head.appendChild(cinematicStyle);
 
-// Force mouse trail activation - TESTE DIRETO
-console.log('Ativando rastro do mouse...');
-
-// Remove any existing mouse trail listeners
-document.removeEventListener('mousemove', createMouseTrail);
-
-// Add new robust mouse trail
-document.addEventListener('mousemove', function(e) {
-    console.log('Mouse movido:', e.clientX, e.clientY); // Debug
+// Mouse trail (desktop only)
+if (!isMobile) {
+    console.log('Ativando rastro do mouse para desktop...');
     
-    // Create trail particle immediately
-    const trail = document.createElement('div');
-    trail.style.cssText = `
-        position: fixed;
-        width: 12px;
-        height: 12px;
-        background: #00ffff;
-        border-radius: 50%;
-        left: ${e.clientX - 6}px;
-        top: ${e.clientY - 6}px;
-        pointer-events: none;
-        z-index: 99999;
-        box-shadow: 0 0 15px #00ffff, 0 0 25px #00d4ff;
-        animation: simpleTrailFade 1s ease-out forwards;
-    `;
+    // Add mouse trail for desktop only
+    document.addEventListener('mousemove', function(e) {
+        // Create trail particle immediately
+        const trail = document.createElement('div');
+        trail.style.cssText = `
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            background: #00ffff;
+            border-radius: 50%;
+            left: ${e.clientX - 6}px;
+            top: ${e.clientY - 6}px;
+            pointer-events: none;
+            z-index: 99999;
+            box-shadow: 0 0 15px #00ffff, 0 0 25px #00d4ff;
+            animation: simpleTrailFade 1s ease-out forwards;
+        `;
+        
+        document.body.appendChild(trail);
+        
+        // Remove after animation
+        setTimeout(() => {
+            if (trail && trail.parentNode) {
+                trail.remove();
+            }
+        }, 1000);
+    });
     
-    document.body.appendChild(trail);
-    
-    // Remove after animation
-    setTimeout(() => {
-        if (trail && trail.parentNode) {
-            trail.remove();
-        }
-    }, 1000);
-});
+    console.log('Rastro do mouse ativado para desktop!');
+} else {
+    console.log('Rastro do mouse desabilitado no mobile para melhor performance');
+}
 
 // Add simple trail animation
 const simpleTrailStyle = document.createElement('style');
@@ -727,7 +748,26 @@ function changeScene(newSceneIndex) {
     const currentSceneEl = document.querySelector(`[data-scene="${currentScene}"].cinematic-scene`);
     const newSceneEl = document.querySelector(`[data-scene="${newSceneIndex}"].cinematic-scene`);
     
-    // Scene transition animation
+    // Simplified scene transition for mobile
+    if (isMobile) {
+        // Instant transition on mobile for better performance
+        if (currentSceneEl) {
+            currentSceneEl.classList.remove('active');
+            currentSceneEl.style.opacity = '0';
+        }
+        
+        if (newSceneEl) {
+            newSceneEl.classList.add('active');
+            newSceneEl.style.opacity = '1';
+        }
+        
+        currentScene = newSceneIndex;
+        sceneTransitioning = false;
+        resetAutoSceneTransition();
+        return;
+    }
+    
+    // Full animation for desktop
     if (currentSceneEl) {
         currentSceneEl.classList.add('transitioning-out');
         currentSceneEl.classList.remove('active');
@@ -750,8 +790,10 @@ function changeScene(newSceneIndex) {
             currentScene = newSceneIndex;
             sceneTransitioning = false;
             
-            // Create scene transition effect
-            createSceneTransitionEffect();
+            // Create scene transition effect (desktop only)
+            if (!isMobile) {
+                createSceneTransitionEffect();
+            }
             
         }, 800);
     }, 200);
@@ -958,34 +1000,49 @@ function initTouchSceneNavigation() {
     }
 }
 
-// Mobile performance optimizations
+// Aggressive mobile performance optimizations
 function optimizeForMobile() {
     if (isMobile) {
-        // Reduce particle count for better performance
+        console.log('Aplicando otimizações agressivas para mobile...');
+        
+        // Remove ALL particle elements for performance
         const particleElements = document.querySelectorAll('.floating-particle');
-        particleElements.forEach((particle, index) => {
-            if (index > 30) { // Keep only first 30 particles
-                particle.remove();
-            }
+        particleElements.forEach(particle => particle.remove());
+        
+        // Disable ALL complex animations and effects
+        const complexElements = document.querySelectorAll(`
+            .holographic-interfaces, .lens-flares, .light-streaks, .portal-transitions,
+            .ai-data-flows, .floating-elements, .hologram-layer, .energy-flows,
+            .neural-network, .data-nodes, .ai-connections, .quantum-field,
+            .dimensional-rifts, .interface-panels, .star-field, .space-station,
+            .orbital-rings, .portal-ring, .portal-core, .particle-swirl,
+            .city-skyline, .holographic-buildings, .flying-drones, .neon-lights,
+            .geometric-shapes, .morphing-particles, .human-silhouette,
+            .fragmentation-effect, .hologram-reconstruction, .glitch-overlay,
+            .holographic-figure, .portal-burst, .energy-particles
+        `);
+        complexElements.forEach(element => {
+            element.style.display = 'none';
+            element.style.animation = 'none';
         });
         
-        // Disable complex animations on very small screens
-        if (window.innerWidth < 480) {
-            const complexAnimations = document.querySelectorAll(
-                '.holographic-interfaces, .lens-flares, .light-streaks, .portal-transitions'
-            );
-            complexAnimations.forEach(element => {
-                element.style.display = 'none';
-            });
-        }
+        // Simplify scene backgrounds
+        const sceneBackgrounds = document.querySelectorAll('.scene-background');
+        sceneBackgrounds.forEach(bg => {
+            bg.style.background = 'linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 50, 100, 0.2) 50%, rgba(0, 0, 0, 0.9) 100%)';
+        });
         
-        // Optimize scene transitions for mobile
+        // Disable parallax effects on mobile
+        window.removeEventListener('mousemove', updateParallaxLayers);
+        
+        // Simplify scene transitions
         const scenes = document.querySelectorAll('.cinematic-scene');
         scenes.forEach(scene => {
-            scene.style.transition = 'opacity 0.5s ease-in-out';
+            scene.style.transition = 'opacity 0.3s ease';
+            scene.style.transform = 'none';
         });
         
-        // Reduce auto scene transition time on mobile
+        // Increase auto scene transition time significantly
         if (autoSceneTimer) {
             clearInterval(autoSceneTimer);
             autoSceneTimer = setInterval(() => {
@@ -993,8 +1050,16 @@ function optimizeForMobile() {
                     const nextScene = (currentScene + 1) % totalScenes;
                     changeScene(nextScene);
                 }
-            }, 10000); // 10 seconds instead of 8
+            }, 15000); // 15 seconds for better performance
         }
+        
+        // Disable cinematic effects
+        clearInterval(cinematicEffectsInterval);
+        
+        // Reduce DOM manipulation
+        document.removeEventListener('mousemove', createCinematicTransition);
+        
+        console.log('Otimizações móveis aplicadas com sucesso!');
     }
 }
 
@@ -1052,13 +1117,41 @@ function optimizeMobileForm() {
 
 // Initialize mobile optimizations
 if (isMobile || isTouch) {
+    // Apply critical mobile optimizations immediately
+    document.documentElement.style.setProperty('--mobile-optimized', '1');
+    
     document.addEventListener('DOMContentLoaded', function() {
-        initTouchSceneNavigation();
-        optimizeForMobile();
+        console.log('Inicializando otimizações mobile...');
+        
+        // Apply optimizations in order of priority
         fixMobileViewport();
+        optimizeForMobile();
+        initTouchSceneNavigation();
         addTouchFeedback();
         optimizeMobileForm();
+        
+        // Disable unnecessary features
+        window.mouseTrailActive = false;
+        
+        // Force garbage collection if available
+        if (window.gc) {
+            setTimeout(() => window.gc(), 2000);
+        }
+        
+        console.log('Otimizações mobile aplicadas com sucesso!');
     });
+    
+    // Preload critical mobile styles
+    const mobileStyleHint = document.createElement('style');
+    mobileStyleHint.textContent = `
+        @media (max-width: 768px) {
+            * { 
+                will-change: auto !important;
+                transform: translateZ(0) !important;
+            }
+        }
+    `;
+    document.head.appendChild(mobileStyleHint);
 }
 
 // Handle orientation change
